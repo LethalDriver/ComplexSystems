@@ -105,7 +105,7 @@ def hoshen_kopelman(lattice, update_labels=False):
 
 
 def monte_carlo_simulation(L, T, p0, pk, dp):
-    p_values = np.arange(p0, pk, dp)
+    p_values = np.arange(p0, pk + dp, dp)
     results = []
 
     for p in tqdm(p_values, desc="Overall Progress"):
