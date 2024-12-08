@@ -1,6 +1,7 @@
 import numpy as np
 from collections import Counter
 from tqdm import tqdm
+from percolation_old import burning_method as burning_method_dfs
 
 def read_input(filename):
     with open(filename, 'r') as file:
@@ -114,7 +115,7 @@ def monte_carlo_simulation(L, T, p0, pk, dp):
 
         for _ in tqdm(range(T), desc=f"Simulating for p={p:.2f}", leave=False):
             lattice = generate_lattice(L, p)
-            P_flow += burning_method(lattice)
+            P_flow += burning_method_dfs(lattice)
             _, cluster_sizes = hoshen_kopelman(lattice)
 
             smax_total += max(cluster_sizes.keys())
