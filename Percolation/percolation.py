@@ -115,7 +115,7 @@ def monte_carlo_simulation(L, T, p0, pk, dp):
 
         for _ in tqdm(range(T), desc=f"Simulating for p={p:.2f}", leave=False):
             lattice = generate_lattice(L, p)
-            P_flow += burning_method_dfs(lattice)[0]
+            P_flow += burning_method_dfs(lattice)
             _, cluster_sizes = hoshen_kopelman(lattice)
 
             smax_total += max(cluster_sizes.keys())
