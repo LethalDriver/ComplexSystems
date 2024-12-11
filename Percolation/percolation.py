@@ -38,13 +38,13 @@ def burning_method(lattice):
                             labels[ni, nj] = t + 1
                             new_burning = True
                             if ni == L - 1:
-                                return True
+                                return True, labels
+                            
         if not new_burning:
             break
         t += 1
 
-    return False
-
+    return False, labels
 
 def hoshen_kopelman(lattice, update_labels=False):
     L = lattice.shape[0]
@@ -115,7 +115,7 @@ def monte_carlo_simulation(L, T, p0, pk, dp):
 
         for _ in tqdm(range(T), desc=f"Simulating for p={p:.2f}", leave=False):
             lattice = generate_lattice(L, p)
-            P_flow += burning_method_dfs(lattice)
+            P_flow += burning_method_dfs(lattice)[0]
             _, cluster_sizes = hoshen_kopelman(lattice)
 
             smax_total += max(cluster_sizes.keys())
