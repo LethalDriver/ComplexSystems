@@ -117,9 +117,8 @@ def monte_carlo_simulation(L, T, p0, pk, dp):
             lattice = generate_lattice(L, p)
             P_flow += burning_method_dfs(lattice)
             _, cluster_sizes = hoshen_kopelman(lattice)
-            
-            if cluster_sizes:
-                smax_total += max(cluster_sizes.keys())
+
+            smax_total += max(cluster_sizes.keys())
 
             cluster_distribution.update(cluster_sizes)
 
