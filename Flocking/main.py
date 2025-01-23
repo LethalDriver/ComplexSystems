@@ -7,10 +7,11 @@ WIDTH, HEIGHT = 800, 600
 NUM_BOIDS = 100
 BOID_RADIUS = 5
 MAX_SPEED = 2
-MAX_FORCE = 0.3
+MAX_FORCE = 2
 
 NEIGHBOR_RADIUS = 50
 AVOID_RADIUS = 20
+FOV_ANGLE = 360
 
 ALIGNMENT_WEIGHT = 1.0
 COHESION_WEIGHT = 1.0
@@ -57,14 +58,23 @@ class Boid:
         if self.position.y < 0:
             self.position.y = HEIGHT
 
+    def in_field_of_view(self, other):
+        direction_to_other = (other.position - self.position).normalize()
+        forward_direction = self.velocity.normalize()
+        angle = forward_direction.angle_to(direction_to_other)
+        return abs(angle) < (FOV_ANGLE / 2)
+
     def align(self, boids):
         """Calculate alignment vector."""
         avg_velocity = pygame.Vector2(0, 0)
         count = 0
         for boid in boids:
-            if boid != self and self.position.distance_to(boid.position) < NEIGHBOR_RADIUS:
-                avg_velocity += boid.velocity
-                count += 1
+            if boid != self:
+                if self.in_field_of_view(boid):
+                    distance = self.position.distance_to(boid.position)
+                    if distance < NEIGHBOR_RADIUS:
+                        avg_velocity += boid.velocity
+                        count += 1
         if count > 0:
             avg_velocity /= count
             avg_velocity = avg_velocity - self.velocity
@@ -75,9 +85,11 @@ class Boid:
         center_of_mass = pygame.Vector2(0, 0)
         count = 0
         for boid in boids:
-            if boid != self and self.position.distance_to(boid.position) < NEIGHBOR_RADIUS:
-                center_of_mass += boid.position
-                count += 1
+            if boid != self and self.in_field_of_view(boid):
+                distance = self.position.distance_to(boid.position)
+                if distance < NEIGHBOR_RADIUS:
+                    center_of_mass += boid.position
+                    count += 1
         if count > 0:
             center_of_mass /= count
             return (center_of_mass - self.position) * 0.01
@@ -87,9 +99,10 @@ class Boid:
         """Calculate separation vector."""
         avoid_vector = pygame.Vector2(0, 0)
         for boid in boids:
-            distance = self.position.distance_to(boid.position)
-            if boid != self and distance < AVOID_RADIUS:
-                avoid_vector += (self.position - boid.position) / distance
+            if boid != self and self.in_field_of_view(boid):
+                distance = self.position.distance_to(boid.position)
+                if distance < AVOID_RADIUS:
+                    avoid_vector += (self.position - boid.position) / distance
         return avoid_vector
 
 boids = [Boid(random.uniform(0, WIDTH), random.uniform(0, HEIGHT)) for _ in range(NUM_BOIDS)]
