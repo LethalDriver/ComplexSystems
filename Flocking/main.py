@@ -2,41 +2,44 @@ import pygame
 import random
 import math
 
-# Screen dimensions
 WIDTH, HEIGHT = 800, 600
 
-# Boid parameters
 NUM_BOIDS = 100
 BOID_RADIUS = 5
-MAX_SPEED = 4
+MAX_SPEED = 2
+MAX_FORCE = 0.3
+
 NEIGHBOR_RADIUS = 50
 AVOID_RADIUS = 20
+
 ALIGNMENT_WEIGHT = 1.0
 COHESION_WEIGHT = 1.0
 SEPARATION_WEIGHT = 1.5
 
-# Initialize Pygame
 pygame.init()
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Boids Flocking Simulation")
 clock = pygame.time.Clock()
 
-# Boid class
 class Boid:
     def __init__(self, x, y):
         self.position = pygame.Vector2(x, y)
         self.velocity = pygame.Vector2(random.uniform(-2, 2), random.uniform(-2, 2))
 
     def update(self, boids):
-        # Apply the three rules
         alignment = self.align(boids)
         cohesion = self.cohere(boids)
         separation = self.separate(boids)
 
-        # Combine forces
-        self.velocity += (alignment * ALIGNMENT_WEIGHT +
-                          cohesion * COHESION_WEIGHT +
-                          separation * SEPARATION_WEIGHT)
+        steering = (alignment * ALIGNMENT_WEIGHT +
+                    cohesion * COHESION_WEIGHT +
+                    separation * SEPARATION_WEIGHT)
+
+        # Limit turn rate
+        if steering.length() > MAX_FORCE:
+            steering.scale_to_length(MAX_FORCE)
+
+        self.velocity += steering
 
         # Limit speed
         if self.velocity.length() > MAX_SPEED:
@@ -45,7 +48,6 @@ class Boid:
         # Update position
         self.position += self.velocity
 
-        # Wrap around screen edges
         if self.position.x > WIDTH:
             self.position.x = 0
         if self.position.x < 0:
@@ -90,7 +92,6 @@ class Boid:
                 avoid_vector += (self.position - boid.position) / distance
         return avoid_vector
 
-# Create boids
 boids = [Boid(random.uniform(0, WIDTH), random.uniform(0, HEIGHT)) for _ in range(NUM_BOIDS)]
 
 def draw_arrow(screen, color, position, velocity, size=10):
@@ -104,22 +105,19 @@ def draw_arrow(screen, color, position, velocity, size=10):
     ]
     pygame.draw.polygon(screen, color, points)
 
-# Main simulation loop
 running = True
 while running:
-    screen.fill((30, 30, 30))  # Clear screen with dark gray background
+    screen.fill((30, 30, 30))
 
-    # Handle events
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
 
-    # Update and draw boids
     for boid in boids:
         boid.update(boids)
         draw_arrow(screen, (255, 255, 255), boid.position, boid.velocity, BOID_RADIUS)
 
-    pygame.display.flip()  # Update display
-    clock.tick(60)  # Limit to 60 frames per second
+    pygame.display.flip() 
+    clock.tick(60)  
 
 pygame.quit()
