@@ -1,13 +1,15 @@
 import pygame
 import random
 import math
+import time
+import subprocess
 
 WIDTH, HEIGHT = 800, 600
 
 NUM_BOIDS = 100
 BOID_RADIUS = 5
 MAX_SPEED = 2
-MAX_FORCE = 2
+STEERING = 0.3
 
 NEIGHBOR_RADIUS = 50
 AVOID_RADIUS = 20
@@ -15,7 +17,7 @@ FOV_ANGLE = 360
 
 ALIGNMENT_WEIGHT = 1.0
 COHESION_WEIGHT = 1.0
-SEPARATION_WEIGHT = 1.5
+SEPARATION_WEIGHT = 1.0
 
 pygame.init()
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -36,8 +38,8 @@ class Boid:
                     cohesion * COHESION_WEIGHT +
                     separation * SEPARATION_WEIGHT)
 
-        if steering.length() > MAX_FORCE:
-            steering.scale_to_length(MAX_FORCE)
+        if steering.length() > STEERING:
+            steering.scale_to_length(STEERING)
 
         self.velocity += steering
 
