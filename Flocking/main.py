@@ -28,25 +28,22 @@ class Boid:
         self.velocity = pygame.Vector2(random.uniform(-2, 2), random.uniform(-2, 2))
 
     def update(self, boids):
+        separation = self.separate(boids)
         alignment = self.align(boids)
         cohesion = self.cohere(boids)
-        separation = self.separate(boids)
 
         steering = (alignment * ALIGNMENT_WEIGHT +
                     cohesion * COHESION_WEIGHT +
                     separation * SEPARATION_WEIGHT)
 
-        # Limit turn rate
         if steering.length() > MAX_FORCE:
             steering.scale_to_length(MAX_FORCE)
 
         self.velocity += steering
 
-        # Limit speed
         if self.velocity.length() > MAX_SPEED:
             self.velocity.scale_to_length(MAX_SPEED)
 
-        # Update position
         self.position += self.velocity
 
         if self.position.x > WIDTH:
