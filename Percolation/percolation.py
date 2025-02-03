@@ -1,10 +1,13 @@
-import numpy as np
 from collections import Counter
+
+import numpy as np
 from tqdm import tqdm
+
 from percolation_old import burning_method as burning_method_dfs
 
+
 def read_input(filename):
-    with open(filename, 'r') as file:
+    with open(filename, "r") as file:
         lines = file.readlines()
         L = int(lines[0].split()[0])
         T = int(lines[1].split()[0])
@@ -34,17 +37,23 @@ def burning_method(lattice):
             for j in range(L):
                 if labels[i, j] == t:
                     for ni, nj in [(i - 1, j), (i + 1, j), (i, j - 1), (i, j + 1)]:
-                        if 0 <= ni < L and 0 <= nj < L and lattice[ni, nj] == 1 and labels[ni, nj] == 0:
+                        if (
+                            0 <= ni < L
+                            and 0 <= nj < L
+                            and lattice[ni, nj] == 1
+                            and labels[ni, nj] == 0
+                        ):  # Check for boundary conditions and occupancy
                             labels[ni, nj] = t + 1
                             new_burning = True
                             if ni == L - 1:
                                 return True, labels
-                            
+
         if not new_burning:
             break
         t += 1
 
     return False, labels
+
 
 def hoshen_kopelman(lattice, update_labels=False):
     L = lattice.shape[0]
@@ -59,7 +68,6 @@ def hoshen_kopelman(lattice, update_labels=False):
             root = -label_map[root]
         return root
 
-
     for i in range(L):
         for j in range(L):
             if lattice[i, j] == 1:  # Process only occupied sites
@@ -73,7 +81,9 @@ def hoshen_kopelman(lattice, update_labels=False):
 
                 if not neighbors:  # No neighbors
                     labels[i, j] = current_label
-                    label_map[current_label] = 1  # Assign a new label and initialize cluster size
+                    label_map[current_label] = (
+                        1  # Assign a new label and initialize cluster size
+                    )
                     current_label += 1
                 else:
                     root_labels = [find_root(n) for n in neighbors]
@@ -97,9 +107,7 @@ def hoshen_kopelman(lattice, update_labels=False):
                     labels[i, j] = find_root(labels[i, j])
 
     # Collect cluster sizes
-    cluster_sizes = Counter(
-        size for size in label_map.values() if size > 0
-    )
+    cluster_sizes = Counter(size for size in label_map.values() if size > 0)
 
     return labels, cluster_sizes
 
@@ -118,28 +126,32 @@ def monte_carlo_simulation(L, T, p0, pk, dp):
             P_flow += burning_method_dfs(lattice)
             _, cluster_sizes = hoshen_kopelman(lattice)
 
-            smax_total += max(cluster_sizes.keys())
+            smax_total += max(
+                cluster_sizes.keys()
+            )  # Find the size of the largest cluster
 
-            cluster_distribution.update(cluster_sizes)
+            cluster_distribution.update(
+                cluster_sizes
+            )  # Update the cluster size distribution
 
         P_flow /= T
         smax_avg = smax_total / T
         results.append((p, P_flow, smax_avg))
 
-        dist_filename = f'Dist-p{p:.2f}L{L}T{T}.txt'
-        with open(dist_filename, 'w') as file:
+        dist_filename = f"Dist-p{p:.2f}L{L}T{T}.txt"
+        with open(dist_filename, "w") as file:
             for s, count in cluster_distribution.items():
                 if s > 0:
                     file.write(f"{s}  {count}\n")
 
-    results_filename = f'Ave-L{L}T{T}.txt'
-    with open(results_filename, 'w') as file:
+    results_filename = f"Ave-L{L}T{T}.txt"
+    with open(results_filename, "w") as file:
         for p, P_flow, smax_avg in results:
             file.write(f"{p}  {P_flow}  {smax_avg}\n")
 
 
 def main():
-    L, T, p0, pk, dp = read_input('perc-ini.txt')
+    L, T, p0, pk, dp = read_input("perc-ini.txt")
     monte_carlo_simulation(L, T, p0, pk, dp)
 
 
